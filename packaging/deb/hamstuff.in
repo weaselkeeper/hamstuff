@@ -15,7 +15,9 @@ Copyright: LICENSE
 # Changelog: <changelog file; defaults to a generic changelog>
 Readme: README.md
 Files: moxon.conf /etc/moxon
+ pathcalc.conf /etc/pathcalc
  moxon.tcl /usr/bin
+ pathcalc.tcl /usr/bin
 Description: Calculate dimensions for moxon antenna
  Need freq (MHz), and wire size (mm)
  .
