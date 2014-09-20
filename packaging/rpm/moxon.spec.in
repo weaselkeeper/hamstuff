@@ -1,0 +1,46 @@
+Name:           moxon
+Version:        VERSION
+Release:        RELEASE
+Summary:        Calculate the dimensions for a moxon antenna
+License:        GPLv2
+URL:            https://github.com/weaselkeeper/%{name}
+Group:          System Environment/Base
+Source0:        %{name}-%{version}.tar.bz2
+BuildRoot:      %{_tmppath}/%{name}-%{version}-root-%(%{__id_u} -n)
+BuildArch:      noarch
+
+Requires:       tcl, python,tk
+
+%description
+Calculate the dimensions for a moxon antenna.
+
+%prep
+%setup -q -n %{name}
+
+%install
+rm -rf %{buildroot}
+
+%{__mkdir_p} %{buildroot}%{_bindir}
+%{__mkdir_p} %{buildroot}%{_sysconfdir}/%{name}
+#%{__mkdir_p} %{buildroot}%{_datadir}/%{name}/plugins
+%{__mkdir_p} %{buildroot}%{_localstatedir}/log/%{name}
+#cp -r ./plugins/*.tcl %{buildroot}%{_datadir}/%{name}/plugins/
+cp -r ./*.tcl %{buildroot}%{_bindir}/
+cp -r ./*.py %{buildroot}%{_bindir}/
+cp -r ./*.conf %{buildroot}%{_sysconfdir}/%{name}
+
+%files
+%{_bindir}/*.tcl
+%{_bindir}/*.py
+%{_sysconfdir}/%{name}/*
+#%{_datadir}/%{name}/*
+
+%pre
+
+%post
+
+%clean
+rm -rf %{buildroot}
+
+%changelog
+CHANGELOG

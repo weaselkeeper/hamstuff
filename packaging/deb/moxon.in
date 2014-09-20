@@ -1,0 +1,23 @@
+### Commented entries have reasonable defaults.
+### Uncomment to edit them.
+# Source: <source package name; defaults to package name>
+Section: misc
+Priority: optional
+Homepage: https://github.com/weaselkeeper/moxon.git
+Standards-Version: 3.9.2
+
+Package: moxon
+Version: VERSION
+Maintainer: FULLNAME <EMAIL>
+Depends: python,tcl,tk
+Architecture: all
+Copyright: LICENSE
+# Changelog: <changelog file; defaults to a generic changelog>
+Readme: README.md
+Files: moxon.conf /etc/moxon
+ moxon.tcl /usr/bin
+Description: Calculate dimensions for moxon antenna
+ Need freq (MHz), and wire size (mm)
+ .
+ Folded dipole 2 element yagi-uda
+
