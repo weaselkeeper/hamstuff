@@ -17,12 +17,14 @@ Copyright (C) 2000 Jim Richardson
 #	02111-1307, USA.
 #
 
-# Simple calculator for moxon antenna construction
+# Scripts I've written for Ham radio tasks. 
+
+
+#Moxon:  Simple calculator for moxon antenna construction (not finished)
+#Pathcalc:  Parabolic antenna calcs.
 
 #Comments, bug notices, feature lists are welcome at
 #weaselkeeper@gmail.com, please direct flames to /dev/null, I will...
 
 # I have recently began experimenting with graphical programming in python,
-# as part of that, I am reimplementing pathcalc.tcl in python, pathcalc.py is
-# using tkinter, and Wxpathcalc.py  is using wxWindows. Neither rewrite is
-# functional at this time, but I am learning as I go.
+# as part of that, I will be reimplementing pathcalc.tcl in python
