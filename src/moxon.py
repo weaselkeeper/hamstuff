@@ -38,6 +38,7 @@ class Moxon(object):
         """ Set some basic starting limits """
         self = read_config(self)
         self.title = 'Parapath Calculator'
+        self.settings = []
 
     def run(self):
         """ Execute the run method """
@@ -57,15 +58,17 @@ class Moxon(object):
         Tk.Button(root, text="Quit", command=root.quit).pack()
         root.mainloop()
 
+    def calc(self):
+        """ Do the heavy lifting """
+        # calc stuff here
+
+
     def change_freq(self, freq):
         """ when freq changes, recalculate all the stuff that changes as a
         result"""
         log.debug('in change_freq')
-        log.warn('now recalc pathloss, paragain, 3dbTheta and lambda')
-        self.paragain()
-        self.threedb_theta()
-        self.lambdaCalc()
-        self. pathloss()
+        log.warn('now recalc dims')
+        self.calc()
 
     def lambdaCalc(self):
         """ Calculating lambda (wavelength) """
