@@ -1,8 +1,8 @@
-#!/usr/bin/env	wish
+#!/usr/bin/env  python
 #
 #
-#Copyright (C) 2000 Jim Richardson
-#email	weaselkeeper@gmail.com
+# Copyright (C) 2014 Jim Richardson
+# email	weaselkeeper@gmail.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -70,4 +70,60 @@ logging.getLogger(PROJECTNAME).addHandler(console)
 LOG = logging.getLogger(PROJECTNAME)
 
 
+def get_options():
+    """ Parse the command line options"""
+    import argparse
 
+    parser = argparse.ArgumentParser(
+        description='GUI path calculator for parabolic antenna pairs.')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='Enable debugging during execution.',
+                        default=None)
+    parser.add_argument('-c', '--config', action='store', default=None,
+                        help='Specify a path to an alternate config file')
+    _args = parser.parse_args()
+    _args.usage = PROJECTNAME + ".py [options]"
+
+    return _args
+
+
+def get_config(_args):
+    """ Now parse the config file.  Get any and all info from config file."""
+    LOG.debug('Now in get_config')
+    parser = ConfigParser.SafeConfigParser()
+    configuration = {}
+    configfile = os.path.join('/etc', PROJECTNAME, PROJECTNAME + '.conf')
+    if _args.config:
+        _config = _args.config
+    else:
+        if os.path.isfile(configfile):
+            _config = configfile
+        else:
+            LOG.warn('No config file found at %s', configfile)
+            sys.exit(1)
+
+    parser.read(_config)
+
+    LOG.debug('Doing things with %s', configuration['SOURCEURL'])
+    LOG.debug('leaving get_config')
+    return configuration
+
+
+def get_args():
+    """ we only run if called from main """
+    _args = get_options()
+
+    if _args.debug:
+        LOG.setLevel(logging.DEBUG)
+    else:
+        LOG.setLevel(logging.WARN)
+    return _args
+
+
+# Here we start if called directly (the usual case.)
+if __name__ == "__main__":
+    # This is where we will begin when called from CLI. No need for argparse
+    # unless being called interactively, so import it here
+    args = get_args()
+    # and now we can do, whatever it is, we do.
+    sys.exit(run(args))
