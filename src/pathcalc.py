@@ -64,9 +64,9 @@ logging.basicConfig(level=logging.WARN,
                     datefmt='%y.%m.%d %H:%M:%S')
 
 # Setup logging to console.
-console = logging.StreamHandler(sys.stderr)
-console.setLevel(logging.WARN)
-logging.getLogger(PROJECTNAME).addHandler(console)
+CONSOLE = logging.StreamHandler(sys.stderr)
+CONSOLE.setLevel(logging.WARN)
+logging.getLogger(PROJECTNAME).addHandler(CONSOLE)
 LOG = logging.getLogger(PROJECTNAME)
 
 
@@ -120,10 +120,15 @@ def get_args():
     return _args
 
 
+def run(_args):
+    """ Base run function """
+    print _args
+
+
 # Here we start if called directly (the usual case.)
 if __name__ == "__main__":
     # This is where we will begin when called from CLI. No need for argparse
     # unless being called interactively, so import it here
-    args = get_args()
+    ARGS = get_args()
     # and now we can do, whatever it is, we do.
-    sys.exit(run(args))
+    sys.exit(run(ARGS))
