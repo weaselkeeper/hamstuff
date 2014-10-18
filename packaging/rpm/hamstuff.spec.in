@@ -12,7 +12,6 @@ BuildArch:      noarch
 Requires:       tcl, python,tk
 
 %description
-moxon  Calculate the dimensions of a moxon antenna
 pathcalc Parabolic antenna path calculations
 
 %prep

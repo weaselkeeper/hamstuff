@@ -20,8 +20,6 @@ email	weaselkeeper@gmail.com
  Scripts I've written for Ham radio tasks. 
 
 
-Moxon:  Simple calculator for moxon antenna construction (not finished)
-Pathcalc:  Parabolic antenna calcs.
 
 Comments, bug notices, feature lists are welcome at
 weaselkeeper@gmail.com, please direct flames to /dev/null, I will...
