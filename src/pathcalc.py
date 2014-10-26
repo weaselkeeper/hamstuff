@@ -84,6 +84,11 @@ def get_options():
     _args = parser.parse_args()
     _args.usage = PROJECTNAME + ".py [options]"
 
+    if _args.debug:
+        LOG.setLevel(logging.DEBUG)
+    else:
+        LOG.setLevel(logging.WARN)
+
     return _args
 
 
@@ -109,17 +114,6 @@ def get_config(_args):
     return configuration
 
 
-def get_args():
-    """ we only run if called from main """
-    _args = get_options()
-
-    if _args.debug:
-        LOG.setLevel(logging.DEBUG)
-    else:
-        LOG.setLevel(logging.WARN)
-    return _args
-
-
 def run(_args):
     """ Base run function """
     print _args
@@ -129,6 +123,6 @@ def run(_args):
 if __name__ == "__main__":
     # This is where we will begin when called from CLI. No need for argparse
     # unless being called interactively, so import it here
-    ARGS = get_args()
+    ARGS = get_options()
     # and now we can do, whatever it is, we do.
     sys.exit(run(ARGS))
