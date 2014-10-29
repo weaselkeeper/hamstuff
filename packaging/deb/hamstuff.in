@@ -14,8 +14,10 @@ Architecture: all
 Copyright: LICENSE
 # Changelog: <changelog file; defaults to a generic changelog>
 Readme: README.md
- pathcalc.conf /etc/pathcalc
+Files:  pathcalc.conf /etc/pathcalc
  pathcalc.tcl /usr/bin
+ pathcalc.py /usr/bin
+
 Description: Pathcalculator for parabolic pairs
  Need freq (MHz), and wire size (mm)
  .
