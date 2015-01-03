@@ -69,7 +69,8 @@ log = logging.getLogger(PROJECTNAME)
 
 
 # set up some default settings, use if no config presented.
-defaults = {'dia': (0.1, 1), 'freq': (0.1, 10), 'path': (0.05, 10.0), 'lambda': (0, 50)}
+defaults = {'dia': (0.1, 1), 'freq': (0.1, 10),
+           'path': (0.05, 10.0), 'lambda': (0, 50)}
 print defaults
 
 
@@ -126,11 +127,13 @@ class PathCalc(object):
     def paraGain(self):
         """ Calculating the dish gain per side """
         log.debug('in paraGain calculation')
-        self.para_gain = (20*math.log(10, self.dia)+(20*math.log(10, self.freq)+17.8))
+        self.para_gain = (20*math.log(10,
+                         self.dia)+(20*math.log(10, self.freq)+17.8))
 
     def pathloss(self):
         """ Calculate the full path loss """
-        self.path_loss = (92.4+20*math.log(10, self.freq)+20*math.log(10, self.path_length))
+        self.path_loss = (92.4+20*math.log(10, self.freq)
+                         +20*math.log(10, self.path_length))
 
     def pathgain(self):
         """ Calc total path gain """
