@@ -84,6 +84,8 @@ class PathCalc(object):
         """ Set some basic starting limits """
         self = read_config(self)
         self.title = 'Parapath Calculator'
+        self.dia = defaults['dia']
+        self.pathlength = defaults['path']
 
     def run(self):
         """ Execute the run method """
