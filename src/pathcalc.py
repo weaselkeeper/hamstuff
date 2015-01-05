@@ -119,7 +119,6 @@ class PathCalc(object):
         """ Calculating lambda (wavelength) """
         log.debug('in lambdaCalc')
         self._lambda = 300.00/self.freq
-        print self._lambda
 
     def threedb_theta(self):
         """ Calculating the 3db theta point """
