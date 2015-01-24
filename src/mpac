@@ -1,0 +1,602 @@
+#!/bin/sh
+# Call wish\
+exec wish "$0" "$@"
+
+################################################################################
+#
+# MPAC v0.2.3 - Microstrip Patch Antenna Calculator
+# Copyright (c) 1999 Nathan Cummings
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# Change Log:
+# v0.1 
+#       - Initial offering, missing a bunch of stuff
+# v0.2.1
+#       - Added input error checking
+#
+# v0.2.2 modifications By Jim Richardson (weaselkeeper@gmail.com)
+# 	- Moved debug values to front so the program starts off
+# 		with some reasonable values
+# 	- Added sliders for length_cm and feedx position
+# 	- When using the slider for length_cm, width is held at
+# 		3/2 of length for a reasonable value
+# 	- Slider for feedx ranges from 0 to 50% of width_cm value
+#	- added slider for feed radius
+#	- added reset button
+#	- Improved slider functionality
+# TODO
+#       - radiation pattern plots
+#       - Add input unit selection, (inches, mil, cm, mm, m) 
+#       - All kinds of other stuff
+#
+################################################################################
+
+
+# set up the necesarry variables 
+#
+set VERSION 0.2.2
+
+set freq_out 0
+set wave_length 0
+set inputR_out 0
+set inputX_out 0
+set radeff 0
+set radeff_out 0
+set direct 0
+set directivity_out 0
+set bandw 0
+set bandwidth_out 0
+set direct 0
+set ur 1.0
+
+wm title . "MPAC $VERSION"
+
+. config -bd 2
+
+frame .one   -width 600 -height 40 
+frame .two   -bd 10
+frame .three -width 600 -height 40 -bg blue
+
+set titleFont {fixed}
+set inputFont {fixed}
+set sectionFont {fixed}
+
+# title frame 
+#
+frame .title -bd 10
+    label .title.title -text "Microstrip Patch Antenna Calculator" -font $titleFont
+pack .title.title
+
+# create the picture of the antenna
+image create photo diag -file patch.gif
+label .one.pic -image diag 
+
+
+# frame to hold first (middle) column of input parameters
+#
+frame .one.mid -width 100 -borderwidth 5
+        frame .one.mid.1 -bd 1
+                label .one.mid.1.caption -text "Dimensions" -font $sectionFont
+        pack .one.mid.1.caption
+       
+        frame .one.mid.2 -bd 3
+                label .one.mid.2.caption -text "Length (cm):" -font $inputFont
+                entry .one.mid.2.entry -relief sunken -width 8 -textvariable length_cm
+        	scale .one.mid.2.scale -orient horiz -width 10 -from 0.25 -to 5 -resolution 0.01 \
+			-showvalue 0 -label "Length" -variable scale_length_cm -command {length_CalcIt}
+
+        foreach i {entry caption scale} {pack .one.mid.2.$i -side right }
+        
+	frame .one.mid.3 -bd 3
+              label .one.mid.3.caption -text "Width (cm):" -font $inputFont
+              entry .one.mid.3.entry -relief sunken -width 8 -textvariable width_cm
+	      scale .one.mid.3.scale -orient horiz -from .5 -to 10 -resolution 0.05 -variable w2l_ratio \
+	      		-label "W to L Ratio" -width 10 -command length_CalcIt
+        foreach i {entry caption scale} {pack .one.mid.3.$i -side right}
+              
+        frame .one.mid.4 -bd 3
+                label .one.mid.4.caption -text "Height (cm):" -font $inputFont
+                entry .one.mid.4.entry -relief sunken -width 8 -textvariable height_cm
+	      	scale .one.mid.4.scale -orient horiz -from .01 -to .1 -resolution 0.005 -variable height_cm\
+			-showvalue 0 -width 10 -command height_CalcIt
+        foreach i {entry caption scale} {pack .one.mid.4.$i -side right }
+   
+        frame .one.mid.5 -bd 3
+                label .one.mid.5.caption -text "Feed Position" -font $sectionFont
+        pack .one.mid.5.caption 
+   
+        frame .one.mid.6 -bd 3
+                label .one.mid.6.caption -text "x0 (0 -> L):" -font $inputFont
+                entry .one.mid.6.entry -relief sunken -width 8 \
+			-textvariable feedx_cm
+		scale .one.mid.6.scale -orient horiz -from 0 -to 50 \
+ 			-resolution 0.5 -variable feed_rel -label "Feed_x %" \
+			 -width 10 -command  {feed_x_CalcIt} 
+
+        foreach i {entry caption scale} {pack .one.mid.6.$i -side right }
+   
+        frame .one.mid.7 -bd 3
+                label .one.mid.7.caption -text "y0 (0 -> W/2):" -font $inputFont
+                entry .one.mid.7.entry -relief sunken -width 8 -textvariable feedy_cm
+        foreach i {entry caption} {pack .one.mid.7.$i -side right }            
+   
+        frame .one.mid.8 -bd 3
+                label .one.mid.8.caption -text "radius (cm):" -font $inputFont
+                entry .one.mid.8.entry -relief sunken -width 8 -textvariable radius_cm
+		scale .one.mid.8.scale -orient horiz -from 0.0001 -to 0.1 -resolution 0.0001 \
+			-showvalue 0 -variable scale_radius -label "Radius" -command feed_CalcIt \
+			-width 10
+			
+        foreach i {entry caption scale} {pack .one.mid.8.$i -side right }            
+
+foreach i {1 2 3 4 5 6 7 8} {pack .one.mid.$i -fill x}
+   
+
+# frame to hold second (right) column of input parameters 
+#
+frame .one.right -width 100 -borderwidth 5
+    
+    frame .one.right.1 -bd 1
+        label .one.right.1.caption -text "Electrical Properties" -font $sectionFont
+    pack .one.right.1.caption
+    
+    frame .one.right.2 -bd 3
+        label .one.right.2.caption -text "Dielectric Constant:" -font $inputFont
+        entry .one.right.2.entry -relief sunken -width 8 -textvariable epsR
+    foreach i {entry caption} {pack .one.right.2.$i -side right}
+    
+    frame .one.right.3 -bd 3
+        label .one.right.3.caption -text "Loss Tangent:" -font $inputFont
+        entry .one.right.3.entry -relief sunken -width 8 -textvariable losstan
+    foreach i {entry caption} {pack .one.right.3.$i -side right}
+  
+    frame .one.right.4 -bd 3
+        label .one.right.4.caption -text "Conductivity:" -font $inputFont
+        entry .one.right.4.entry -relief sunken -width 8 -textvariable conduct
+    foreach i {entry caption} {pack .one.right.4.$i -side right}
+       
+    frame .one.right.5 -bd 3
+        label .one.right.5.caption -text "0000000" -font $sectionFont -fg grey
+    pack .one.right.5.caption
+        
+    frame .one.right.6 -bd 3
+        label .one.right.6.caption -text "0000000" -font $inputFont -fg grey
+    pack .one.right.6.caption
+
+    frame .one.right.7 -bd 3
+        label .one.right.7.caption -text "0000000" -font $inputFont -fg grey
+    pack .one.right.7.caption
+ 
+    frame .one.right.8 -bd 3
+        label .one.right.8.caption -text "0000000" -font $inputFont -fg grey
+    pack .one.right.8.caption
+
+foreach i {1 2 3 4 5 6 7 8} { pack .one.right.$i -fill x }
+
+pack .one.pic .one.mid .one.right -side left 
+
+# button to run the calculations 
+# calls the CalcIt procedure
+# And one to reset to "default" values
+#
+button .two.calculate -text "Recalculate" -command CalcIt -padx 5
+button .two.reset -text "Reset" -command reset_values -padx 5 
+pack .two.calculate .two.reset	-side right
+
+
+# frame to hold first column of answers
+#
+set al .three.left
+frame $al -width 100 -bd 5
+    
+    frame $al.1 -bd 1
+        label $al.1.caption -text "Patch Antenna Characteristics:" -font $sectionFont
+    pack $al.1.caption
+    
+    frame $al.2 -bd 3
+        label $al.2.caption -text "Resonant Frequency (GHz):" -font $inputFont
+        label $al.2.answer -relief sunken -width 10 -padx 4 -textvariable freq_out
+    foreach i {answer caption} {pack $al.2.$i -side right}
+
+    frame $al.3 -bd 3
+        label $al.3.caption -text "Input Resistance (Ohms):" -font $inputFont
+        label $al.3.answer -relief sunken -width 10 -padx 4 -textvariable inputR_out
+    foreach i {answer caption} {pack $al.3.$i -side right}
+    
+    frame $al.4 -bd 3
+        label $al.4.caption -text "Input Reactance (Ohms):" -font $inputFont
+        label $al.4.answer -relief sunken -width 10 -padx 4 -textvariable inputX_out
+    foreach i {answer caption} {pack $al.4.$i -side right}
+
+foreach i {1 2 3 4} {pack $al.$i -fill x}    
+
+
+# frame to hold second column of answers
+#
+set ar .three.right
+frame $ar -width 100 -bd 5
+    
+    frame $ar.1 -bd 1
+        label $ar.1.caption -text " " -font $sectionFont
+    pack $ar.1.caption
+    
+    frame $ar.2 -bd 3
+        label $ar.2.caption -text "Radiation Efficiency (%):" -font $inputFont
+        label $ar.2.answer -relief sunken -width 10 -textvariable radeff_out
+    foreach i {answer caption} {pack $ar.2.$i -side right}
+
+    frame $ar.3 -bd 3
+        label $ar.3.caption -text "Bandwidth (%):" -font $inputFont
+        label $ar.3.answer -relief sunken -width 10 -textvariable bandwidth_out
+    foreach i {answer caption} {pack $ar.3.$i -side right}
+    
+    frame $ar.4 -bd 3
+        label $ar.4.caption -text "Directivity (dB):" -font $inputFont
+        label $ar.4.answer -relief sunken -width 10 -textvariable directivity_out
+    foreach i {answer caption} {pack $ar.4.$i -side right}
+
+foreach i {1 2 3 4} {pack $ar.$i -fill x}    
+
+pack .three.left .three.right -side left
+
+
+
+# pack it all together
+#
+pack .title .one .two .three -side top
+
+
+###################################################################################
+#
+# Calculations done below here
+#
+
+proc set_values {} {
+	global length_cm width_cm height_cm epsR losstan conduct feedx_cm feedy_cm radius_cm 
+	global feed_rel scale_radius scale_length_cm w2l_ratio
+
+	set length_cm 2.0
+	set width_cm 3.0
+	set height_cm 0.0593
+	set epsR 2.2
+	set losstan 0.001
+	set conduct 3.0e7
+	set feedx_cm 0.0
+	set feedy_cm 0.0
+	set radius_cm 0.05
+	set feed_rel 0.0
+	set scale_radius 0
+	set scale_length_cm 0
+	set w2l_ratio 1.5
+}
+set_values
+
+proc reset_values {} {
+	global length_cm width_cm height_cm epsR losstan conduct feedx_cm feedy_cm radius_cm feed_rel w2l_ratio
+	set_values
+	CalcIt	
+}
+
+
+proc tanc {argtan} {
+        # tanc is tan(x)/x
+        #
+        
+        set tan_c [expr tan($argtan) / $argtan]
+        return $tan_c
+}        
+        
+proc epsEff {wl_eta epsilonR Height} {
+        # this procedure calculates the effective dielectric constant
+        # wl_eta is either the width or the length depending on the context
+        #    
+         
+        set int1 [expr ($epsilonR + 1.0)/2.0]
+        set int2 [expr ( ($epsilonR - 1.0) * (pow((1 + 10.0*$Height/$wl_eta),-0.5))) / 2.0]
+        set effective [expr $int1 + $int2]
+        # puts stdout "int1: $int1 \nint2: $int2"
+        
+        return $effective
+}
+
+proc showMessageBox {w messageText} {
+        # set button [tk_messageBox -icon warning -type ok -title Message -parent $w -message "This is a type messagebox with the icon"]
+        tk_messageBox -icon info -message "$messageText" -type ok -parent $w
+}
+
+proc checkForNumber {w victim} {
+    set testString [split $victim {}]
+    set badTag 0
+    if {[regexp -nocase {[a-df-z]} $victim ]} {
+            showMessageBox $w "Illegal input $victim"
+            return 1
+    }
+    return 0
+} 
+proc height_CalcIt {height} {
+	global height_cm
+	CalcIt
+}
+
+
+proc length_CalcIt {scale_length} {
+	global length_cm width_cm scale_radius scale_length_cm feedx_cm feed_rel w2l_ratio
+	set length_cm $scale_length_cm 
+	set width_cm [expr $length_cm*$w2l_ratio]
+	set feedx_cm [expr $feed_rel*$width_cm/100]
+	CalcIt
+}
+
+proc feed_CalcIt {scale_radius} {
+	global radius_cm
+	set radius_cm $scale_radius
+	CalcIt
+}
+
+
+proc feed_x_CalcIt {feed_relx} {
+	global feedx_cm width_cm 
+	set feedx_cm [expr $feed_relx*$width_cm/100]
+	CalcIt
+}
+
+   
+proc CalcIt {} {
+    global height_cm length_cm width_cm epsR losstan conduct ur feedx_cm feedy_cm radius_cm feed_rel
+    global radeff_out freq_out bandwidth_out directivity_out inputR_out inputX_out
+        
+    
+    # constants
+    #
+    set Pi 3.14159265
+    set C 299792458
+    set u0 1.25663706e-6
+    set eps0 8.8541878e-12
+    set eta0 377
+    set gamma 0.577216
+    set a2 -0.16605
+    set a4 0.00761
+    set c2 -0.0914153
+        
+    ################################################################################################
+    
+
+    # Check to make sure all the input is well behaved.
+    #
+    # When checking the length, width and height, first look and see if the the input is not null or zero.
+    # Then if it passes that test, call the checkForNumber routine and make sure that there are no characters
+    # in the input that are either [0-9] or [0-9]e[0-9] where e is the eponent part.  Maybe in the future i will 
+    # roll the checking all into one function. 
+    #
+    # When checking the feed position, Xo can't be larger than the length and Yo can't be larger than 
+    # half of the width.  The radius must also be greater than zero.
+    #
+    # When checking the dielectric constant, i will only argue that it must be greater than zero though
+    # it doesn't make a whole lot of sense to have a huge epsilonR in these caluculations.  And in some cases
+    # the equations breakdown if the dielectric constant is too big, just keep it reasonable.  Same goes for
+    # the loss tangent and the conductivity,  they _could_ really be whatever, but not here.  Losstan should be 
+    # small (>1) and conductivity should be big (>2e5) or so.  
+    #
+      
+    set w .
+    if {$length_cm == "" || $length_cm == 0} {
+        showMessageBox $w "Length must be \> 0"
+        return 0 
+    } elseif {[checkForNumber $w $length_cm]} {
+        return 0
+    }
+        
+    if {$width_cm == "" || $width_cm == 0} {
+        showMessageBox $w "Width must be \> 0"
+        return 0 
+    } elseif {[checkForNumber $w $width_cm]} {
+        return 0
+    }
+        
+    if {$height_cm == "" || $height_cm == 0} {
+        showMessageBox $w "Height must be \> 0"
+        return 0 
+    } elseif {[checkForNumber $w $height_cm]} {
+        return 0
+    }
+        
+    if {$epsR == "" || $epsR == 0} {
+        showMessageBox $w "Dielectric constant must be \> 0"
+        return 0 
+    } elseif {[checkForNumber $w $epsR]} {
+        return 0
+    }
+        
+
+    set height [expr $height_cm * 1e-2]
+    set width [expr $width_cm * 1e-2]
+    set length [expr $length_cm * 1e-2]
+        
+    set feedx [expr $feedx_cm * 1e-2]
+    set feedy [expr $feedx_cm * 1e-2]
+    set radius [expr $radius_cm * 1e-2]
+
+    
+    
+    set n1 [expr sqrt($epsR*$ur)]
+    #puts stdout "height: $height"
+    #puts stdout "width: $width"
+    #puts stdout "length: $length"
+    #puts stdout "n1: $n1"
+        
+    # calculate the effective length of the patch
+    # where dL is delta_L and L_effective is L + 2dL
+    #
+    set dL_n [expr 0.412 * $height * ([epsEff $width $epsR $height] + 0.3 ) * ($width/$height + 0.264)]
+    set dL_d [expr ([epsEff $width $epsR $height] - 0.258 )*( $width/$height + 0.8 )]
+    set dL [expr $dL_n/$dL_d]
+    set Le [expr $length + 2.0*$dL]
+        
+    #puts stdout "deltaL: $dL \nLe: $Le"
+                
+    # calculate the effective width
+    # 
+    set dW [expr (log(4.0)/$Pi)*$height ]
+    set We [expr $width + 2.0 * $dW]
+        
+    #puts stdout "deltaW: $dW \nWe: $We"
+        
+    # calculate the resonant frequency of the patch
+    #    
+    set fo [expr $C/(2*$Le*sqrt($epsR*$ur))]
+    set fo_GHz [expr $fo/1.0e9]
+    set freq_out [format "%4.3f" $fo_GHz]
+
+    # calculate the wavelength in the dielectric
+    #
+    set lambdaD [expr $C/$fo ]
+
+    # calculate the zero order resonant frequency
+    #
+    set f_zero [expr $C/(2.0*$length*sqrt($epsR))]
+        
+    # calculate the free-space wavelength 
+    #
+    set lambda0 [expr $C / $f_zero]
+    #puts stdout "lambda0: $lambda0"
+    
+    set omega [expr 2*$Pi*$fo]
+
+    set k0 [expr $omega*sqrt($u0*$ur*$epsR*$eps0)]
+    #puts stdout "k0: $k0"
+    
+    # Calculate the parameters used in finding the surface wave power
+    # This is the formulation by Pozar which includes the higher order terms
+    #
+    # calculate the parameter "s" 
+    #
+    set s [expr sqrt($epsR-1)]
+    #puts stdout "s: $s"
+    
+    # calculate the parameter alpha1
+    #
+    set alph1 [expr -(1/$s)*(tan($k0 * $height * $s) + ( ($k0 * $height * $s)/(pow(cos($k0 * $height * $s),2) )))]
+    
+    # parameter alpha0
+    #
+    set alph0 [expr $s*tan( ($k0 * $height * $s))]
+    
+    #puts stdout "alpha1: $alph1\nalpha0: $alph0"
+
+    # calculate parameter x0
+    # x0 = 1 + (x0_a+epsR*sqrt(x0_b))/x0_c
+    #
+    set x0_a [expr -1*pow($epsR,2) + ( $alph0 * $alph1 )]
+    set x0_b [expr pow($epsR,2) - 2*$alph0*$alph1 + pow($alph0,2)]
+    set x0_c [expr pow($epsR,2) - pow($alph1,2)]
+    set x0 [expr 1 + (( $x0_a + $epsR*sqrt($x0_b)) / $x0_c)]
+    
+    #puts stdout "x0: $x0"
+
+    # calculate parameter x1
+    #
+    set x1 [expr ( pow($x0,2) - 1 ) / ( $epsR - pow($x0,2) )]
+    #puts stdout "x1: $x1"
+
+    # calculate the surface wave power
+    # Psw = pw_a * ((pw_b)/(pw_c+(pw_d*pw_e)))
+    #
+    set pw_a [expr $eta0 * pow($k0,2) / 8.0 ]
+    set pw_b [expr $epsR * pow((pow($x0,2)-1),3.0/2.0)]
+    set pw_c [expr $epsR * ( 1 + $x1 )]
+    set pw_d [expr ( $k0    * $height ) * pow((pow($x0,2)-1),1.0/2.0)]
+    set pw_e [expr 1 + pow($epsR,2) * $x1]
+    set Psw    [expr $pw_a * ( ($pw_b) / ($pw_c + ( $pw_d*$pw_e ) ) )]
+    #puts stdout "Psw: $Psw"
+    
+    # calculate the parameter c1
+    #
+    set c1 [expr (1/pow($n1,2)) + ((2.0/5.0)/pow($n1,4.0))]
+    #puts stdout "c1: $c1"
+    
+    # calculate the power radiated into space (Psp) by a unit strength horizontal dipole. 
+    #
+    set Psp [expr (1.0/pow($lambda0,2)) * (pow(($k0*$height),2)) * (80.0*pow($Pi,2)*pow($ur,2)*$c1)]
+    #puts stdout "Psp: $Psp"
+    
+    # calculate the radiation efficiency for a horizontal electric dipole (er_hed)
+    #
+    set er_hed [expr $Psp/($Psp + $Psw)]
+    #puts stdout "er_hed: $er_hed"
+    
+    # calculate the surface resistance Rs
+    #
+    set Rs [expr sqrt(2.0*$Pi*$fo*$u0/(2.0*$conduct))]
+    #puts stdout "Rs: $Rs"
+    
+    # calculate the parameter p
+    #
+    set p_1 [expr 1 + ($a2/10.0)*pow(($k0*$We),2.0) + (pow($a2,2.0)+2*$a4)*(3.0/560.0)*(pow(($k0*$We),4.0)) ]
+    set p_2 [expr $c2*(1.0/5.0)*(pow(($k0*$Le),2)) +$a2*$c2*(1.0/70.0)*(pow(($k0*$We),2.0))*(pow(($k0*$Le),2)) ]
+    set p [expr $p_1 + $p_2 ]
+    #puts stdout "p: $p"
+                
+    ## calculate the radiation efficiency
+    #
+    set er_1 [expr $losstan + ($Rs/($Pi*$eta0*$ur)) * (1/($height/$lambda0)) ]
+    set er_2 [expr (3.0/16.0) * ($epsR/($p*$c1))* ($Le/$We) * (1/($height/$lambda0)) ]
+    set radeff [expr $er_hed / (1 + $er_hed * $er_1 * $er_2) ]
+        
+    set radeff_out [format "%2.2f" [expr $radeff*100.0] ]
+    #puts stdout "radeff: $radeff"
+        
+    # calulate the bandwidth of the patch
+    #
+    set bw_1 [expr ($Rs/($Pi*$eta0*$ur))*(1/($height/$lambda0))]
+    set bw_2 [expr (16.0/3.0)*($p*$c1/$epsR)]
+    set bw_3 [expr ($height/$lambda0)*($We/$Le)*(1/$er_hed)]
+    set bandwidth [expr (1/sqrt(2.0)) * ($losstan + $bw_1 + ($bw_2 * $bw_3))]
+        
+    set bandwidth_out [format "%2.2f" [expr $bandwidth * 100.0]]
+    #puts stdout "bandwidth: $bandwidth"
+
+    # calculate the directivity of the patch
+    #
+    set D_arg [expr tan($k0*$height*$n1) / ($k0*$height*$n1)]
+    set D_1 [expr ($eta0/(40.0*$Pi))*(1/($p*$c1))]
+    set D_2 [expr pow($D_arg,2) ]
+    set directivity [expr $D_1*( $D_2 / ( 1 + (($ur*$D_2) / $epsR) ) ) ]
+        
+    #puts stdout "D_arg: $D_arg\nD_1: $D_1\nD_2: $D_2"
+    #puts stdout "directivity: $directivity"
+    set directivity_out [format "%2.2f" [expr 10*log10($directivity)]]
+        
+    # calculate the input resistance
+    #
+    set Rin_1 [expr (4.0/$Pi)*($ur*$eta0)*($Le/$We)*($height/$lambda0)]
+    set Rin_2 [expr pow(cos($Pi*$feedx/$Le),2.0)]
+    set inputR [expr ($Rin_1*$Rin_2)/($losstan + $bw_1 + $bw_2*$bw_3)]
+
+    #puts stdout "inputR: $inputR"        
+    set inputR_out [format "%2.2f" $inputR]
+
+
+    # calculate the input reactance
+    #
+    set xf_1 [expr ($eta0/(2.0*$Pi))*($ur*$k0*$height)]
+    set xf_int1 [expr -1.0 * $gamma]
+    set xf_int2 [expr 2.0 / ($k0 * $radius * sqrt($epsR * $ur)) ]
+    set xf_2 [expr $xf_int1  + log($xf_int2) ]
+    set xf [expr $xf_1 * $xf_2]
+
+    #puts stdout "xf: $xf"    
+    set inputX_out [format "%2.2f" $xf]
+}
