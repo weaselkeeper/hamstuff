@@ -28,12 +28,12 @@ exec wish "$0" "$@"
 #       - Added input error checking
 #
 # v0.2.2 modifications By Jim Richardson (weaselkeeper@gmail.com)
-# 	- Moved debug values to front so the program starts off
-# 		with some reasonable values
-# 	- Added sliders for length_cm and feedx position
-# 	- When using the slider for length_cm, width is held at
-# 		3/2 of length for a reasonable value
-# 	- Slider for feedx ranges from 0 to 50% of width_cm value
+#	- Moved debug values to front so the program starts off
+#		with some reasonable values
+#	- Added sliders for length_cm and feedx position
+#	- When using the slider for length_cm, width is held at
+#		3/2 of length for a reasonable value
+#	- Slider for feedx ranges from 0 to 50% of width_cm value
 #	- added slider for feed radius
 #	- added reset button
 #	- Improved slider functionality
@@ -95,7 +95,7 @@ frame .one.mid -width 100 -borderwidth 5
         frame .one.mid.2 -bd 3
                 label .one.mid.2.caption -text "Length (cm):" -font $inputFont
                 entry .one.mid.2.entry -relief sunken -width 8 -textvariable length_cm
-        	scale .one.mid.2.scale -orient horiz -width 10 -from 0.25 -to 5 -resolution 0.01 \
+		scale .one.mid.2.scale -orient horiz -width 10 -from 0.25 -to 5 -resolution 0.01 \
 			-showvalue 0 -label "Length" -variable scale_length_cm -command {length_CalcIt}
 
         foreach i {entry caption scale} {pack .one.mid.2.$i -side right }
@@ -104,13 +104,13 @@ frame .one.mid -width 100 -borderwidth 5
               label .one.mid.3.caption -text "Width (cm):" -font $inputFont
               entry .one.mid.3.entry -relief sunken -width 8 -textvariable width_cm
 	      scale .one.mid.3.scale -orient horiz -from .5 -to 10 -resolution 0.05 -variable w2l_ratio \
-	      		-label "W to L Ratio" -width 10 -command length_CalcIt
+			-label "W to L Ratio" -width 10 -command length_CalcIt
         foreach i {entry caption scale} {pack .one.mid.3.$i -side right}
               
         frame .one.mid.4 -bd 3
                 label .one.mid.4.caption -text "Height (cm):" -font $inputFont
                 entry .one.mid.4.entry -relief sunken -width 8 -textvariable height_cm
-	      	scale .one.mid.4.scale -orient horiz -from .01 -to .1 -resolution 0.005 -variable height_cm\
+		scale .one.mid.4.scale -orient horiz -from .01 -to .1 -resolution 0.005 -variable height_cm\
 			-showvalue 0 -width 10 -command height_CalcIt
         foreach i {entry caption scale} {pack .one.mid.4.$i -side right }
    
@@ -123,7 +123,7 @@ frame .one.mid -width 100 -borderwidth 5
                 entry .one.mid.6.entry -relief sunken -width 8 \
 			-textvariable feedx_cm
 		scale .one.mid.6.scale -orient horiz -from 0 -to 50 \
- 			-resolution 0.5 -variable feed_rel -label "Feed_x %" \
+			-resolution 0.5 -variable feed_rel -label "Feed_x %" \
 			 -width 10 -command  {feed_x_CalcIt} 
 
         foreach i {entry caption scale} {pack .one.mid.6.$i -side right }
@@ -194,7 +194,8 @@ pack .one.pic .one.mid .one.right -side left
 #
 button .two.calculate -text "Recalculate" -command CalcIt -padx 5
 button .two.reset -text "Reset" -command reset_values -padx 5 
-pack .two.calculate .two.reset	-side right
+button .two.quit -text "Quit" -command exit -padx 5
+pack .two.calculate .two.reset .two.quit	-side right
 
 
 # frame to hold first column of answers
